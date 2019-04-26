@@ -8,14 +8,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.example.android.popularmoviesapp.model.RetroTMDBDiscover;
+import com.example.android.popularmoviesapp.model.RetroTMDBDiscoverResults;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.GridItemViewHolder> {
 
     private List<String> mImageList;
     private Context mContext;
+
+    private ArrayList<RetroTMDBDiscoverResults> mResults;
 
     public class GridItemViewHolder extends RecyclerView.ViewHolder {
         //PosterImageView posterImageView;
@@ -27,9 +32,10 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         }
     }
 
-    public ImageGridAdapter(Context context, List<String> imageList) {
+    public ImageGridAdapter(Context context, List<String> imageList, ArrayList<RetroTMDBDiscoverResults> results) {
         this.mContext = context;
         this.mImageList = imageList;
+        this.mResults = results;
     }
 
     @NonNull
@@ -42,7 +48,9 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     @Override
     public void onBindViewHolder(GridItemViewHolder holder, int position) {
-        final String path = mImageList.get(position);
+        //final String path = mImageList.get(position);
+
+        final String path = mResults.get(position).getPoster_path();
 
         Picasso.get()
                 .load(path)
@@ -60,6 +68,7 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     @Override
     public int getItemCount() {
-        return mImageList.size();
+        //return mImageList.size();
+        return mResults.size();
     }
 }
