@@ -27,8 +27,8 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     }
 
     public ImageGridAdapter(Context context, List imageList) {
-        mContext = context;
-        mImageList = imageList;
+        this.mContext = context;
+        this.mImageList = imageList;
     }
 
     @Override
@@ -58,6 +58,6 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     @Override
     public int getItemCount() {
-        return 0;
+        return mImageList.size();
     }
 }
