@@ -4,14 +4,14 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 
+import com.example.android.popularmoviesapp.adapters.ImageGridAdapter;
 import com.example.android.popularmoviesapp.interfaces.GetDataService;
-import com.example.android.popularmoviesapp.model.RetroTMDBDiscover;
-import com.example.android.popularmoviesapp.model.RetroTMDBDiscoverResults;
+import com.example.android.popularmoviesapp.models.RetroTMDBDiscover;
+import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
 import com.example.android.popularmoviesapp.network.RetrofitClientInstance;
 
 import java.util.ArrayList;
@@ -22,7 +22,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 //API KEY for TMDB c53136ae7a28a62865708255ff41f52a
 // URL exemplo http://api.themoviedb.org/3/discover/movie?api_key=c53136ae7a28a62865708255ff41f52a&sort_by=popularity.desc
@@ -79,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();*/
 
-        Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance();
+        Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance("popularity.desc");
 
         GetDataService request = retrofit.create(GetDataService.class);
 

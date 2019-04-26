@@ -1,6 +1,4 @@
-package com.example.android.popularmoviesapp.model;
-
-import java.util.List;
+package com.example.android.popularmoviesapp.models;
 
 public class RetroTMDBDiscover {
 

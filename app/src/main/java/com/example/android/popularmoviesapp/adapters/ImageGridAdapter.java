@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesapp;
+package com.example.android.popularmoviesapp.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -8,8 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.example.android.popularmoviesapp.model.RetroTMDBDiscover;
-import com.example.android.popularmoviesapp.model.RetroTMDBDiscoverResults;
+import com.example.android.popularmoviesapp.R;
+import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
