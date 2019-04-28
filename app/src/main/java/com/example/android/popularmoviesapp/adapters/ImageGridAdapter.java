@@ -36,6 +36,15 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         this.mContext = context;
         this.mImageList = imageList;
         this.mResults = results;
+
+    }
+
+    public void addResults(ArrayList<RetroTMDBDiscoverResults> results){
+        if (this.mResults != null){
+            this.mResults.addAll(results);
+        } else {
+            this.mResults = results;
+        }
     }
 
     @NonNull

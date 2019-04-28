@@ -7,6 +7,10 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 
 import com.example.android.popularmoviesapp.adapters.ImageGridAdapter;
 import com.example.android.popularmoviesapp.interfaces.GetDataService;
@@ -16,7 +20,9 @@ import com.example.android.popularmoviesapp.network.RetrofitClientInstance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,9 +37,19 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ArrayList<RetroTMDBDiscoverResults> mResults;
-    private ImageGridAdapter mIimageGridAdapter;
+    private ImageGridAdapter mImageGridAdapter;
     private List<String> imageList;
+    private ProgressBar mLoadingIndicator;
+    private Spinner mOrderSpinner;
     private Context mContext;
+    private EndlessRecyclerViewScrollListener scrollListener;
+
+
+    private String mSelectedOrder;
+
+    String[] ordens;
+    HashMap<String, String> mOrders;
+    int columnCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,18 +58,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ordens = getResources().getStringArray(R.array.ordens);
+        mOrders = new HashMap<String, String>() {{
+            put("popularity.desc", ordens[0]);
+            put("release_date.desc", ordens[1]);
+        }};
 
-        imageList = new ArrayList<>();
-        imageList.add("http://image.tmdb.org/t/p/w185/or06FN3Dka5tukK1e9sl16pB3iy.jpg");
-        imageList.add("http://image.tmdb.org/t/p/w185/or06FN3Dka5tukK1e9sl16pB3iy.jpg");
-        imageList.add("http://image.tmdb.org/t/p/w185/or06FN3Dka5tukK1e9sl16pB3iy.jpg");
-        imageList.add("http://image.tmdb.org/t/p/w185/or06FN3Dka5tukK1e9sl16pB3iy.jpg");
-        imageList.add("http://image.tmdb.org/t/p/w185/or06FN3Dka5tukK1e9sl16pB3iy.jpg");
-        imageList.add("http://image.tmdb.org/t/p/w185/or06FN3Dka5tukK1e9sl16pB3iy.jpg");
-
-
-        //mIimageGridAdapter = new ImageGridAdapter(this, imageList);
-        //recyclerView.setAdapter(mIimageGridAdapter);
+        columnCount = getResources().getInteger(R.integer.column_count);
 
         mContext = this;
 
@@ -65,20 +76,54 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.rv_item_grid);
         recyclerView.setHasFixedSize(true);
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2, StaggeredGridLayoutManager.VERTICAL, false);
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+        mLoadingIndicator.setVisibility(View.VISIBLE);
+
+        mOrderSpinner = (Spinner) findViewById(R.id.sp_order);
+        List<OrdensSpinner> itemList = new ArrayList<OrdensSpinner>();
+
+        for (Map.Entry<String, String> entry : mOrders.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            itemList.add(new OrdensSpinner(value, key));
+        }
+
+        ArrayAdapter<OrdensSpinner> spinnerAdapter = new ArrayAdapter<OrdensSpinner>(this, R.layout.support_simple_spinner_dropdown_item, itemList);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mOrderSpinner.setAdapter(spinnerAdapter);
+
+        mOrderSpinner.setSelection(1, false);
+        OrdensSpinner selecionado = (OrdensSpinner) mOrderSpinner.getSelectedItem();
+        mSelectedOrder = selecionado.getParameter();
+
+
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, columnCount, StaggeredGridLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(gridLayoutManager);
 
-        loadJSON();
+        scrollListener = new EndlessRecyclerViewScrollListener(gridLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                // Triggered only when new data needs to be appended to the list
+                // Add whatever code is needed to append new items to the bottom of the list
+                loadDiscoverJSON(page+1);
+            }
+        };
+        // Adds the scroll listener to RecyclerView
+        recyclerView.addOnScrollListener(scrollListener);
+
+        loadDiscoverJSON(1);
+        //loadDiscoverJSON(2);
     }
 
 
-    private void loadJSON() {
+    private void loadDiscoverJSON(int page) {
         /*Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://gist.githubusercontent.com")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();*/
 
-        Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance("popularity.desc");
+
+        Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(mSelectedOrder, page);
 
         GetDataService request = retrofit.create(GetDataService.class);
 
@@ -90,8 +135,14 @@ public class MainActivity extends AppCompatActivity {
                 RetroTMDBDiscover jsonResponse = response.body();
 
                 mResults = new ArrayList<>(Arrays.asList(jsonResponse.getResults()));
-                mIimageGridAdapter = new ImageGridAdapter(mContext, imageList, mResults);
-                recyclerView.setAdapter(mIimageGridAdapter);
+                if (mImageGridAdapter == null) {
+                    mImageGridAdapter = new ImageGridAdapter(mContext, imageList, mResults);
+                    mLoadingIndicator.setVisibility(View.INVISIBLE);
+                    recyclerView.setAdapter(mImageGridAdapter);
+                } else{
+                    mImageGridAdapter.addResults(mResults);
+                    //mImageGridAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -99,6 +150,25 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("Error",t.getMessage());
             }
         });
+    }
+
+    private static class OrdensSpinner {
+        public String name;
+        public String parameter;
+
+        public OrdensSpinner(String name, String parameter) {
+            this.name = name;
+            this.parameter = parameter;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
+        public String getParameter( ){
+            return parameter;
+        }
     }
 }
 
