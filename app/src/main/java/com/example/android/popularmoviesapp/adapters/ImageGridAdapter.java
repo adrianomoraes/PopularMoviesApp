@@ -1,7 +1,9 @@
 package com.example.android.popularmoviesapp.adapters;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,6 +49,11 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         }
     }
 
+    public void clearResults(){
+        if (mResults != null) mResults.clear();
+    }
+
+
     @NonNull
     @Override
     public GridItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -55,14 +62,19 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         return new GridItemViewHolder(itemView);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onBindViewHolder(GridItemViewHolder holder, int position) {
         //final String path = mImageList.get(position);
 
-        final String path = mResults.get(position).getPoster_path();
+        String path = mResults.get(position).getPoster_path();
+        /*if (path.equals("null")){
+            path = String.valueOf(mContext.getDrawable(R.drawable.film_poster_placeholder));
+        }*/
 
         Picasso.get()
                 .load(path)
+                .placeholder(mContext.getDrawable(R.drawable.film_poster_placeholder))
                 //.resize(185, 277)
                 //.centerCrop()
                 .into(holder.posterImageView);

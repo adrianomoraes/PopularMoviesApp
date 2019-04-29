@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -61,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
         ordens = getResources().getStringArray(R.array.ordens);
         mOrders = new HashMap<String, String>() {{
             put("popularity.desc", ordens[0]);
-            put("release_date.desc", ordens[1]);
+            put("vote_average.desc", ordens[1]);
+            put("release_date.desc", ordens[2]);
         }};
 
         columnCount = getResources().getInteger(R.integer.column_count);
@@ -96,6 +98,23 @@ public class MainActivity extends AppCompatActivity {
         OrdensSpinner selecionado = (OrdensSpinner) mOrderSpinner.getSelectedItem();
         mSelectedOrder = selecionado.getParameter();
 
+        mOrderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // 1- Limpar dataset
+                mImageGridAdapter = null;
+                OrdensSpinner selecionado = (OrdensSpinner) parentView.getSelectedItem();
+                mSelectedOrder = selecionado.getParameter();
+                loadDiscoverJSON(1);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+            }
+        });
+
+
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, columnCount, StaggeredGridLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(gridLayoutManager);
@@ -117,11 +136,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void loadDiscoverJSON(int page) {
-        /*Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://gist.githubusercontent.com")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();*/
-
 
         Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(mSelectedOrder, page);
 

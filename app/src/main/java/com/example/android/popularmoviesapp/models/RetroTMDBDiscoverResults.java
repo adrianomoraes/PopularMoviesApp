@@ -1,5 +1,7 @@
 package com.example.android.popularmoviesapp.models;
 
+import com.example.android.popularmoviesapp.R;
+
 public class RetroTMDBDiscoverResults {
 
     private Long vote_count;
