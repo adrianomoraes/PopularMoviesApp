@@ -1,6 +1,9 @@
 package com.example.android.popularmoviesapp;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -44,9 +47,10 @@ public class MainActivity extends AppCompatActivity {
     private Spinner mOrderSpinner;
     private Context mContext;
     private EndlessRecyclerViewScrollListener scrollListener;
-
+    private PostersViewModel viewModel;
 
     private String mSelectedOrder;
+    private int mPage = 1;
 
     String[] ordens;
     HashMap<String, String> mOrders;
@@ -71,6 +75,27 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;
 
         initViews();
+
+        initViewModel();
+    }
+
+    private void initViewModel() {
+        if (viewModel == null) {
+            viewModel = ViewModelProviders.of(this, new PostersViewModelFactory(this.getApplication(), mSelectedOrder, mPage)).get(PostersViewModel.class);
+            viewModel.getPostersResponseObservable()
+                    .observe(this, new Observer<RetroTMDBDiscover>() {
+                        @Override
+                        public void onChanged(@Nullable RetroTMDBDiscover postersResponse) {
+                            if (postersResponse != null) {
+                                mResults = new ArrayList<>(Arrays.asList(postersResponse.getResults()));
+                                mImageGridAdapter = new ImageGridAdapter(mContext, imageList, mResults);
+                                mLoadingIndicator.setVisibility(View.INVISIBLE);
+                                recyclerView.setAdapter(mImageGridAdapter);
+                                mImageGridAdapter.notifyDataSetChanged();
+                            }
+                        }
+                    });
+        }
 
     }
 
@@ -105,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
                 mImageGridAdapter = null;
                 OrdensSpinner selecionado = (OrdensSpinner) parentView.getSelectedItem();
                 mSelectedOrder = selecionado.getParameter();
-                loadDiscoverJSON(1);
+                loadDiscoverJSON();
             }
 
             @Override
@@ -113,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
                 // your code here
             }
         });
-
 
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, columnCount, StaggeredGridLayoutManager.VERTICAL, false);
@@ -124,20 +148,22 @@ public class MainActivity extends AppCompatActivity {
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 // Triggered only when new data needs to be appended to the list
                 // Add whatever code is needed to append new items to the bottom of the list
-                loadDiscoverJSON(page+1);
+                //mPage = page+1;
+                //loadDiscoverJSON();
+                viewModel.notify();
             }
         };
         // Adds the scroll listener to RecyclerView
         recyclerView.addOnScrollListener(scrollListener);
 
-        loadDiscoverJSON(1);
+        loadDiscoverJSON();
         //loadDiscoverJSON(2);
     }
 
 
-    private void loadDiscoverJSON(int page) {
+    private void loadDiscoverJSON() {
 
-        Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(mSelectedOrder, page);
+        Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(mSelectedOrder, mPage);
 
         GetDataService request = retrofit.create(GetDataService.class);
 
