@@ -150,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 // Add whatever code is needed to append new items to the bottom of the list
                 //mPage = page+1;
                 //loadDiscoverJSON();
-                viewModel.notify();
+                //viewModel.notify();
             }
         };
         // Adds the scroll listener to RecyclerView

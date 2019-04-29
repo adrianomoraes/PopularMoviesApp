@@ -1,41 +1,42 @@
 package com.example.android.popularmoviesapp.models;
 
 import com.example.android.popularmoviesapp.R;
+import com.google.gson.annotations.SerializedName;
 
 public class RetroTMDBDiscoverResults {
-
-    private Long vote_count;
-
-    private Long id;
-
-    private Float vote_average;
+    @SerializedName("vote_count")
+    private Long voteCount;
+    @SerializedName("id")
+    private Long idMovie;
+    @SerializedName("vote_average")
+    private Float voteAverage;
 
     private String title;
 
     private Float popularity;
-
-    private String poster_path;
-
-    private String original_language;
-
-    private String backdrop_path;
+    @SerializedName("poster_path")
+    private String posterPath;
+    @SerializedName("original_language")
+    private String originalLanguage;
+    @SerializedName("backdrop_path")
+    private String backdropPath;
 
     private String overview;
+    @SerializedName("release_date")
+    private String releaseDate;
 
-    private String release_date;
-
-    public Long getVote_count() {
-        return vote_count;
+    public Long getVoteCount() {
+        return voteCount;
     }
 
 
-    public Long getId() {
-        return id;
+    public Long getIdMovie() {
+        return idMovie;
     }
 
 
-    public Float getVote_average() {
-        return vote_average;
+    public Float getVoteAverage() {
+        return voteAverage;
     }
 
 
@@ -47,24 +48,24 @@ public class RetroTMDBDiscoverResults {
         return popularity;
     }
 
-    public String getPoster_path() {
-        return "http://image.tmdb.org/t/p/w185" + poster_path;
+    public String getPosterPath() {
+        return "http://image.tmdb.org/t/p/w185" + posterPath;
     }
 
-    public String getOriginal_language() {
-        return original_language;
+    public String getOriginalLanguage() {
+        return originalLanguage;
     }
 
-    public String getBackdrop_path() {
-        return backdrop_path;
+    public String getBackdropPath() {
+        return backdropPath;
     }
 
     public String getOverview() {
         return overview;
     }
 
-    public String getRelease_date() {
-        return release_date;
+    public String getReleaseDate() {
+        return releaseDate;
     }
 
 }

@@ -67,7 +67,7 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     public void onBindViewHolder(GridItemViewHolder holder, int position) {
         //final String path = mImageList.get(position);
 
-        String path = mResults.get(position).getPoster_path();
+        String path = mResults.get(position).getPosterPath();
         /*if (path.equals("null")){
             path = String.valueOf(mContext.getDrawable(R.drawable.film_poster_placeholder));
         }*/
