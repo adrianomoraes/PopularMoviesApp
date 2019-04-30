@@ -19,7 +19,6 @@ import java.util.List;
 
 public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.GridItemViewHolder> {
 
-    private List<String> mImageList;
     private Context mContext;
 
     private ArrayList<RetroTMDBDiscoverResults> mResults;
@@ -34,20 +33,15 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         }
     }
 
-    public ImageGridAdapter(Context context, List<String> imageList, ArrayList<RetroTMDBDiscoverResults> results) {
+    public ImageGridAdapter(Context context, ArrayList<RetroTMDBDiscoverResults> results) {
         this.mContext = context;
-        this.mImageList = imageList;
         this.mResults = results;
 
     }
 
-    /*public void addResults(ArrayList<RetroTMDBDiscoverResults> results){
-        if (this.mResults != null){
-            this.mResults.addAll(results);
-        } else {
-            this.mResults = results;
-        }
-    }*/
+    public void setResults (ArrayList<RetroTMDBDiscoverResults> results){
+        this.mResults = results;
+    }
 
     public void clearResults(){
         if (mResults != null) mResults.clear();
@@ -65,12 +59,8 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onBindViewHolder(GridItemViewHolder holder, int position) {
-        //final String path = mImageList.get(position);
 
         String path = mResults.get(position).getPosterPath();
-        /*if (path.equals("null")){
-            path = String.valueOf(mContext.getDrawable(R.drawable.film_poster_placeholder));
-        }*/
 
         Picasso.get()
                 .load(path)
@@ -89,7 +79,6 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     @Override
     public int getItemCount() {
-        //return mImageList.size();
         return mResults.size();
     }
 }

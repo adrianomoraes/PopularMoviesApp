@@ -29,6 +29,7 @@ public class PostersViewModel  extends AndroidViewModel {
     private ArrayList<RetroTMDBDiscoverResults> mResults;
     private String mOrder = "popularity.desc";;
     private int mPage = 1;
+    private int verticalscroll = 0;
 
     private static final MutableLiveData MUTABLE_LIVE_DATA = new MutableLiveData();
     {
@@ -58,6 +59,22 @@ public class PostersViewModel  extends AndroidViewModel {
         mPage++;
     }
 
+    public int getPage() {
+        return mPage;
+    }
+
+    void addScroll (int dy){
+        verticalscroll = verticalscroll + dy;
+    }
+
+    public int getVerticalscroll() {
+        return verticalscroll;
+    }
+
+    public ArrayList<RetroTMDBDiscoverResults> getmResults() {
+        return mResults;
+    }
+
     public void loadData(String mOrder, int mPage) {
         // do async operation to fetch and use postValue() method
         Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(mOrder, mPage);
@@ -78,16 +95,8 @@ public class PostersViewModel  extends AndroidViewModel {
                     mResults.addAll(newResults);
                 }
 
-
                 postersResponseObservable.postValue(mResults);
-                /*if (mImageGridAdapter == null) {
-                    mImageGridAdapter = new ImageGridAdapter(mContext, imageList, mResults);
-                    mLoadingIndicator.setVisibility(View.INVISIBLE);
-                    recyclerView.setAdapter(mImageGridAdapter);
-                } else{
-                    mImageGridAdapter.addResults(mResults);
-                    //mImageGridAdapter.notifyDataSetChanged();
-                }*/
+
             }
 
             @Override

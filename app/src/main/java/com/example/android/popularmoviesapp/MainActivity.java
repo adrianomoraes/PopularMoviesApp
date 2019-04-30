@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ArrayList<RetroTMDBDiscoverResults> mResults;
     private ImageGridAdapter mImageGridAdapter;
-    private List<String> imageList;
     private ProgressBar mLoadingIndicator;
     private Spinner mOrderSpinner;
     private Context mContext;
@@ -72,8 +71,6 @@ public class MainActivity extends AppCompatActivity {
             put("release_date.desc", ordens[2]);
         }};
 
-
-
         columnCount = getResources().getInteger(R.integer.column_count);
 
         mContext = this;
@@ -82,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null){
             loadViewModel();
-            //savedInstanceState.putBoolean("carregou", true);
         }
 
 
@@ -91,24 +87,34 @@ public class MainActivity extends AppCompatActivity {
     private void loadViewModel() {
         if (viewModel == null) {
             viewModel = ViewModelProviders.of(this, new PostersViewModelFactory(this.getApplication(), mSelectedOrder, mPage)).get(PostersViewModel.class);
-        } else {
-            viewModel.loadData(mSelectedOrder, mPage);
-        }
-            viewModel.getPostersResponseObservable()
-                    .observe(this, new Observer<ArrayList<RetroTMDBDiscoverResults>>() {
-                        @Override
-                        public void onChanged(@Nullable ArrayList<RetroTMDBDiscoverResults> retroTMDBDiscoverResults) {
-                            if (retroTMDBDiscoverResults != null) {
-                                mResults = new ArrayList<>(retroTMDBDiscoverResults);
-                                mImageGridAdapter = new ImageGridAdapter(mContext, imageList, mResults);
-                                mLoadingIndicator.setVisibility(View.INVISIBLE);
-                                recyclerView.setAdapter(mImageGridAdapter);
-                                mImageGridAdapter.notifyDataSetChanged();
-                            }
-                        }
-                    });
-        //}
 
+            viewModelLoadDataIntoAdapter(viewModel);
+
+        } else {
+            mPage = viewModel.getPage();
+            viewModel.loadData(mSelectedOrder, mPage);
+
+            viewModelLoadDataIntoAdapter(viewModel);
+        }
+
+        recyclerView.scrollToPosition(viewModel.getVerticalscroll());
+    }
+
+    void viewModelLoadDataIntoAdapter(PostersViewModel viewModel){
+        viewModel.getPostersResponseObservable()
+                .observe(this, new Observer<ArrayList<RetroTMDBDiscoverResults>>() {
+                    @Override
+                    public void onChanged(@Nullable ArrayList<RetroTMDBDiscoverResults> retroTMDBDiscoverResults) {
+                        if (retroTMDBDiscoverResults != null) {
+                            mResults = new ArrayList<>(retroTMDBDiscoverResults);
+                            mImageGridAdapter = new ImageGridAdapter(mContext, mResults);
+                            mLoadingIndicator.setVisibility(View.INVISIBLE);
+                            recyclerView.setAdapter(mImageGridAdapter);
+                            mImageGridAdapter.notifyDataSetChanged();
+
+                        }
+                    }
+                });
     }
 
     private void initViews() {
@@ -144,7 +150,8 @@ public class MainActivity extends AppCompatActivity {
                 mSelectedOrder = selecionado.getParameter();
                 viewModel = null;
                 loadViewModel();
-                //loadDiscoverJSON();
+                //recyclerView.scrollTo(0, viewModel.getVerticalscroll());
+
             }
 
             @Override
@@ -164,11 +171,17 @@ public class MainActivity extends AppCompatActivity {
                 // Add whatever code is needed to append new items to the bottom of the list
                 mPage++;
                 viewModel.nextPage();
+
                 loadViewModel();
-                //loadDiscoverJSON();
-                //viewModel.notify();
+                //view.scrollTo(0, viewModel.getVerticalscroll());
             }
 
+            @Override
+            public void onScrolled(RecyclerView view, int dx, int dy) {
+                super.onScrolled(view, dx, dy);
+
+                viewModel.addScroll(dy);
+            }
         };
         // Adds the scroll listener to RecyclerView
         recyclerView.addOnScrollListener(scrollListener);
