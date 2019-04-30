@@ -6,14 +6,29 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
+import android.util.Log;
+import android.view.View;
 
+import com.example.android.popularmoviesapp.adapters.ImageGridAdapter;
+import com.example.android.popularmoviesapp.interfaces.GetDataService;
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscover;
+import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
+import com.example.android.popularmoviesapp.network.RetrofitClientInstance;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class PostersViewModel  extends AndroidViewModel {
 
-    LiveData<RetroTMDBDiscover> postersResponseObservable;
-    private String mOrder;
-    private int mPage;
+    MutableLiveData<ArrayList<RetroTMDBDiscoverResults>> postersResponseObservable;
+    private ArrayList<RetroTMDBDiscoverResults> mResults;
+    private String mOrder = "popularity.desc";;
+    private int mPage = 1;
 
     private static final MutableLiveData MUTABLE_LIVE_DATA = new MutableLiveData();
     {
@@ -22,10 +37,10 @@ public class PostersViewModel  extends AndroidViewModel {
 
     public final ObservableField<RetroTMDBDiscover> project = new ObservableField<>();
 
-    public PostersViewModel(@NonNull PostersRepository postersRepository, @NonNull Application application){
+ /*   public PostersViewModel(@NonNull PostersRepository postersRepository, @NonNull Application application){
         super(application);
-        postersResponseObservable = PostersRepository.getInstance().getPostersPage(mOrder, mPage);
-    }
+        postersResponseObservable = PostersRepository.getInstance().getPosters();//mOrder, mPage
+    }*/
 
     public PostersViewModel(@NonNull Application application, String order, int page){
         super(application);
@@ -34,9 +49,54 @@ public class PostersViewModel  extends AndroidViewModel {
         postersResponseObservable = PostersRepository.getInstance().getPostersPage(mOrder, mPage);
     }
 
-    public LiveData<RetroTMDBDiscover> getPostersResponseObservable()
+    public MutableLiveData<ArrayList<RetroTMDBDiscoverResults>> getPostersResponseObservable()
     {
         return postersResponseObservable;
+    }
+
+    void nextPage(){
+        mPage++;
+    }
+
+    public void loadData(String mOrder, int mPage) {
+        // do async operation to fetch and use postValue() method
+        Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(mOrder, mPage);
+
+        GetDataService request = retrofit.create(GetDataService.class);
+
+        Call<RetroTMDBDiscover> call = request.getMoviesDiscover();
+        call.enqueue(new Callback<RetroTMDBDiscover>() {
+            @Override
+            public void onResponse(Call<RetroTMDBDiscover> call, Response<RetroTMDBDiscover> response) {
+
+                RetroTMDBDiscover jsonResponse = response.body();
+
+                if (mResults == null){
+                    mResults = new ArrayList<>(Arrays.asList(jsonResponse.getResults()));
+                }else{
+                    ArrayList<RetroTMDBDiscoverResults> newResults = new ArrayList<>(Arrays.asList(jsonResponse.getResults()));
+                    mResults.addAll(newResults);
+                }
+
+
+                postersResponseObservable.postValue(mResults);
+                /*if (mImageGridAdapter == null) {
+                    mImageGridAdapter = new ImageGridAdapter(mContext, imageList, mResults);
+                    mLoadingIndicator.setVisibility(View.INVISIBLE);
+                    recyclerView.setAdapter(mImageGridAdapter);
+                } else{
+                    mImageGridAdapter.addResults(mResults);
+                    //mImageGridAdapter.notifyDataSetChanged();
+                }*/
+            }
+
+            @Override
+            public void onFailure(Call<RetroTMDBDiscover> call, Throwable t) {
+                Log.d("Error",t.getMessage());
+            }
+        });
+
+
     }
 }
 

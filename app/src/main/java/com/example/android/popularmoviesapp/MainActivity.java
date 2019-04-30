@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     HashMap<String, String> mOrders;
     int columnCount;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -70,24 +72,34 @@ public class MainActivity extends AppCompatActivity {
             put("release_date.desc", ordens[2]);
         }};
 
+
+
         columnCount = getResources().getInteger(R.integer.column_count);
 
         mContext = this;
 
         initViews();
 
-        initViewModel();
+        if (savedInstanceState == null){
+            loadViewModel();
+            //savedInstanceState.putBoolean("carregou", true);
+        }
+
+
     }
 
-    private void initViewModel() {
+    private void loadViewModel() {
         if (viewModel == null) {
             viewModel = ViewModelProviders.of(this, new PostersViewModelFactory(this.getApplication(), mSelectedOrder, mPage)).get(PostersViewModel.class);
+        } else {
+            viewModel.loadData(mSelectedOrder, mPage);
+        }
             viewModel.getPostersResponseObservable()
-                    .observe(this, new Observer<RetroTMDBDiscover>() {
+                    .observe(this, new Observer<ArrayList<RetroTMDBDiscoverResults>>() {
                         @Override
-                        public void onChanged(@Nullable RetroTMDBDiscover postersResponse) {
-                            if (postersResponse != null) {
-                                mResults = new ArrayList<>(Arrays.asList(postersResponse.getResults()));
+                        public void onChanged(@Nullable ArrayList<RetroTMDBDiscoverResults> retroTMDBDiscoverResults) {
+                            if (retroTMDBDiscoverResults != null) {
+                                mResults = new ArrayList<>(retroTMDBDiscoverResults);
                                 mImageGridAdapter = new ImageGridAdapter(mContext, imageList, mResults);
                                 mLoadingIndicator.setVisibility(View.INVISIBLE);
                                 recyclerView.setAdapter(mImageGridAdapter);
@@ -95,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     });
-        }
+        //}
 
     }
 
@@ -130,7 +142,9 @@ public class MainActivity extends AppCompatActivity {
                 mImageGridAdapter = null;
                 OrdensSpinner selecionado = (OrdensSpinner) parentView.getSelectedItem();
                 mSelectedOrder = selecionado.getParameter();
-                loadDiscoverJSON();
+                viewModel = null;
+                loadViewModel();
+                //loadDiscoverJSON();
             }
 
             @Override
@@ -148,20 +162,26 @@ public class MainActivity extends AppCompatActivity {
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 // Triggered only when new data needs to be appended to the list
                 // Add whatever code is needed to append new items to the bottom of the list
-                //mPage = page+1;
+                mPage++;
+                viewModel.nextPage();
+                loadViewModel();
                 //loadDiscoverJSON();
                 //viewModel.notify();
             }
+
         };
         // Adds the scroll listener to RecyclerView
         recyclerView.addOnScrollListener(scrollListener);
 
-        loadDiscoverJSON();
+        loadViewModel();
+        //loadDiscoverJSON();
+
+
         //loadDiscoverJSON(2);
     }
 
 
-    private void loadDiscoverJSON() {
+   /* private void loadDiscoverJSON() {
 
         Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(mSelectedOrder, mPage);
 
@@ -190,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("Error",t.getMessage());
             }
         });
-    }
+    }*/
 
     private static class OrdensSpinner {
         public String name;

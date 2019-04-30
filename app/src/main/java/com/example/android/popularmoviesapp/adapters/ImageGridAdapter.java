@@ -41,13 +41,13 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     }
 
-    public void addResults(ArrayList<RetroTMDBDiscoverResults> results){
+    /*public void addResults(ArrayList<RetroTMDBDiscoverResults> results){
         if (this.mResults != null){
             this.mResults.addAll(results);
         } else {
             this.mResults = results;
         }
-    }
+    }*/
 
     public void clearResults(){
         if (mResults != null) mResults.clear();
