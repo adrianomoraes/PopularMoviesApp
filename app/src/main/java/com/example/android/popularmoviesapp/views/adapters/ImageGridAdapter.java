@@ -1,8 +1,6 @@
 package com.example.android.popularmoviesapp.views.adapters;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
@@ -11,12 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.example.android.popularmoviesapp.R;
-import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
-import com.example.android.popularmoviesapp.views.MainActivity;
-import com.example.android.popularmoviesapp.views.MovieDetailActivity;
+import com.example.android.popularmoviesapp.models.api.RetroTMDBDiscoverResults;
 import com.example.android.popularmoviesapp.views.listeners.CustomItemClickListener;
 import com.squareup.picasso.Picasso;
 

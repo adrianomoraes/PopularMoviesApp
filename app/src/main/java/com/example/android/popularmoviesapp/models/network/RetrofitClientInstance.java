@@ -63,7 +63,7 @@ public class RetrofitClientInstance {
                                 HttpUrl.Builder requestBuilder = request.url().newBuilder()
                                         .addPathSegment(String.valueOf(movieId))
                                         .addQueryParameter("api_key",API_KEY)
-                                        .addQueryParameter("append_to_response","videos")
+                                        .addQueryParameter("append_to_response","videos,reviews")
                                                 ;
 
 

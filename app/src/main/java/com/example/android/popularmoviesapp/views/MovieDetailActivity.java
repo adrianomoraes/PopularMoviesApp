@@ -1,30 +1,27 @@
 package com.example.android.popularmoviesapp.views;
 
-import android.arch.lifecycle.Observer;
+import android.arch.persistence.room.Room;
 import android.content.Context;
-import android.databinding.DataBindingUtil;
-import android.databinding.ViewDataBinding;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.example.android.popularmoviesapp.R;
-import com.example.android.popularmoviesapp.models.RetroTMDBDiscover;
-import com.example.android.popularmoviesapp.models.RetroTMDBMovieResult;
-import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
+import com.example.android.popularmoviesapp.models.api.RetroTMDBMovieResult;
+import com.example.android.popularmoviesapp.models.api.RetroTMDBReviewResults;
+import com.example.android.popularmoviesapp.models.api.RetroTMDBReviews;
+import com.example.android.popularmoviesapp.models.dao.Favorites;
+import com.example.android.popularmoviesapp.models.dao.FavoritesDatabase;
 import com.example.android.popularmoviesapp.models.network.RetrofitClientInstance;
-import com.example.android.popularmoviesapp.views.adapters.ImageGridAdapter;
 import com.example.android.popularmoviesapp.views.interfaces.GetDataService;
 import com.squareup.picasso.Picasso;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -40,10 +37,15 @@ public class MovieDetailActivity extends AppCompatActivity {
     TextView tv_title;
     TextView tv_releaseDate;
     TextView tv_plot;
+    TextView tv_reviews;
+    ToggleButton toggleFavoritos;
 
     long mMovieId;
 
     Context mContext;
+
+    private static final String DATABASE_NAME = "favorites_db";
+    private FavoritesDatabase movieDatabase;
     //private ViewDataBinding mDetailBinding;
 
     @Override
@@ -57,17 +59,31 @@ public class MovieDetailActivity extends AppCompatActivity {
         tv_title = (TextView) findViewById(R.id.tv_title);
         tv_releaseDate = (TextView) findViewById(R.id.tv_releasedate);
         tv_plot = (TextView) findViewById(R.id.tv_plot);
+        tv_reviews = (TextView) findViewById(R.id.tv_reviews);
+
+        toggleFavoritos = (ToggleButton) findViewById(R.id.toggleFavoritos);
+        toggleFavoritos.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                favoriteOnOff(toggleFavoritos.isChecked());
+            }
+        });
 
         mContext = this;
 
         mMovieId = getIntent().getLongExtra("movieId", 0);
 
-        //tv_title.setText("teste adriano");
+        movieDatabase = Room.databaseBuilder(getApplicationContext(),
+                FavoritesDatabase.class, DATABASE_NAME)
+                .fallbackToDestructiveMigration()
+                .build();
+
+
         viewModelUpdateDataIntoAdapter(mMovieId);
 
-        /*CÓDIGO DO RETROFIT PARA CARGA DOS DADOS*/
 
-        /*PICASSO PARA IMAGENS - POSTER E FUNDO*/
 
         /*LISTAR TRAILERS*/
 
@@ -76,7 +92,28 @@ public class MovieDetailActivity extends AppCompatActivity {
         /*CRIAR BASE PARA FAVORITOS*/
     }
 
-    void viewModelUpdateDataIntoAdapter(long movieId){
+    private void favoriteOnOff(final boolean state){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Favorites movie = new Favorites();
+                movie.setMovieId(mMovieId);
+                movie.setMovieName((String) tv_title.getText());
+
+                if (state) {
+                     if(!movieDatabase.daoAccess().fetchOneMoviesbyMovieId(mMovieId).equals(null)) {
+                        movieDatabase.daoAccess().insertOnlySingleMovie(movie);
+                    }
+                }else {
+                     movieDatabase.daoAccess().deleteMovie(movie);
+                }
+
+            }
+        }) .start();
+    }
+
+
+    void viewModelUpdateDataIntoAdapter(final long movieId){
 
         Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(movieId);
 
@@ -110,7 +147,28 @@ public class MovieDetailActivity extends AppCompatActivity {
                         //.centerCrop()
                         .into(iv_backdrop);
 
-                /*APRESENTAR DADOS RETORNADOS*/
+                toggleFavoritos.setChecked(isFavorite(mResult.getIdMovie()));
+
+                String reviewContent = "";
+
+                if (mResult.getReviews()!= null){
+                    RetroTMDBReviews reviews =  mResult.getReviews();
+
+                    for(RetroTMDBReviewResults review :  reviews.getResults()){
+                        reviewContent = reviewContent + "Author: " + review.getAuthor() + "\n";
+                        reviewContent = reviewContent + review.getContent() + "\n________________\n\n";
+
+                    }
+                } else{
+                    reviewContent = "No reviews posted at this time.";
+                }
+
+                tv_reviews.setText(reviewContent);
+
+            }
+
+            public boolean isFavorite(long movieId){
+                return !movieDatabase.daoAccess().fetchOneMoviesbyMovieId(mMovieId).equals(null);
             }
 
             @Override

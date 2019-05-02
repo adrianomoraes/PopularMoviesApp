@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -19,7 +18,7 @@ import android.widget.Spinner;
 
 import com.example.android.popularmoviesapp.R;
 import com.example.android.popularmoviesapp.views.adapters.ImageGridAdapter;
-import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
+import com.example.android.popularmoviesapp.models.api.RetroTMDBDiscoverResults;
 import com.example.android.popularmoviesapp.views.listeners.CustomItemClickListener;
 import com.example.android.popularmoviesapp.views.listeners.EndlessRecyclerViewScrollListener;
 import com.example.android.popularmoviesapp.views.view_models.PostersViewModelFactory;

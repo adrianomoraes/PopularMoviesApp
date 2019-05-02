@@ -1,6 +1,11 @@
-package com.example.android.popularmoviesapp.models;
+package com.example.android.popularmoviesapp.models.api;
 
 import com.google.gson.annotations.SerializedName;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class RetroTMDBMovieResult {
 
@@ -24,6 +29,13 @@ public class RetroTMDBMovieResult {
 
     @SerializedName("videos")
     private RetroTMDBVideos videos;
+
+    @SerializedName("reviews")
+    private RetroTMDBReviews reviews;
+
+    public RetroTMDBReviews getReviews() {
+        return reviews;
+    }
 
     @SerializedName("backdrop_path")
     String backdropPath;
@@ -49,7 +61,18 @@ public class RetroTMDBMovieResult {
     }
 
     public String getReleaseDate() {
-        return releaseDate;
+
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-DD");
+        Date date = null;
+        try {
+            date = (Date)formatter.parse(releaseDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        SimpleDateFormat newFormat = new SimpleDateFormat("dd/MM/yyyy");
+        String finalString = newFormat.format(date);
+
+        return finalString;
     }
 
     public String getOverview() {

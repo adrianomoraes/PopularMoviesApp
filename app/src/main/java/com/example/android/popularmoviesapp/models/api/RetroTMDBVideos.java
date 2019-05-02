@@ -1,6 +1,4 @@
-package com.example.android.popularmoviesapp.models;
-
-import com.google.gson.annotations.SerializedName;
+package com.example.android.popularmoviesapp.models.api;
 
 public class RetroTMDBVideos {
 

@@ -4,8 +4,8 @@ import android.arch.lifecycle.MutableLiveData;
 import android.util.Log;
 
 import com.example.android.popularmoviesapp.views.interfaces.GetDataService;
-import com.example.android.popularmoviesapp.models.RetroTMDBDiscover;
-import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
+import com.example.android.popularmoviesapp.models.api.RetroTMDBDiscover;
+import com.example.android.popularmoviesapp.models.api.RetroTMDBDiscoverResults;
 import com.example.android.popularmoviesapp.models.network.RetrofitClientInstance;
 
 import java.util.ArrayList;
