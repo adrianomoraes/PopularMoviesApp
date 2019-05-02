@@ -1,8 +1,10 @@
-package com.example.android.popularmoviesapp;
+package com.example.android.popularmoviesapp.views.view_models;
 
 import android.app.Application;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
+
+import com.example.android.popularmoviesapp.views.PostersViewModel;
 
 public class PostersViewModelFactory implements ViewModelProvider.Factory{
     private Application mApplication;

@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesapp.adapters;
+package com.example.android.popularmoviesapp.views.adapters;
 
 import android.content.Context;
 import android.os.Build;
@@ -15,7 +15,6 @@ import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.GridItemViewHolder> {
 
@@ -41,10 +40,12 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     public void setResults (ArrayList<RetroTMDBDiscoverResults> results){
         this.mResults = results;
+        notifyDataSetChanged();
     }
 
     public void clearResults(){
         if (mResults != null) mResults.clear();
+        notifyDataSetChanged();
     }
 
 

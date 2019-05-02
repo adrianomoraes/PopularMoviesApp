@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesapp.network;
+package com.example.android.popularmoviesapp.models.network;
 
 import java.io.IOException;
 

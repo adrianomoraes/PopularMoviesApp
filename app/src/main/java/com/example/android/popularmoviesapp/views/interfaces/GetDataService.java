@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesapp.interfaces;
+package com.example.android.popularmoviesapp.views.interfaces;
 
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscover;
 

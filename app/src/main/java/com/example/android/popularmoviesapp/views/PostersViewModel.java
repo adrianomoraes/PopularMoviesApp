@@ -1,19 +1,17 @@
-package com.example.android.popularmoviesapp;
+package com.example.android.popularmoviesapp.views;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.View;
 
-import com.example.android.popularmoviesapp.adapters.ImageGridAdapter;
-import com.example.android.popularmoviesapp.interfaces.GetDataService;
+import com.example.android.popularmoviesapp.views.interfaces.GetDataService;
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscover;
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
-import com.example.android.popularmoviesapp.network.RetrofitClientInstance;
+import com.example.android.popularmoviesapp.models.network.RetrofitClientInstance;
+import com.example.android.popularmoviesapp.views.view_models.PostersRepository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,10 +36,6 @@ public class PostersViewModel  extends AndroidViewModel {
 
     public final ObservableField<RetroTMDBDiscover> project = new ObservableField<>();
 
- /*   public PostersViewModel(@NonNull PostersRepository postersRepository, @NonNull Application application){
-        super(application);
-        postersResponseObservable = PostersRepository.getInstance().getPosters();//mOrder, mPage
-    }*/
 
     public PostersViewModel(@NonNull Application application, String order, int page){
         super(application);
@@ -53,6 +47,11 @@ public class PostersViewModel  extends AndroidViewModel {
     public MutableLiveData<ArrayList<RetroTMDBDiscoverResults>> getPostersResponseObservable()
     {
         return postersResponseObservable;
+    }
+
+    void clearResults(){
+        mResults.clear();
+        mPage = 1;
     }
 
     void nextPage(){

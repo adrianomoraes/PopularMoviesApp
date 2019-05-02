@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesapp;
+package com.example.android.popularmoviesapp.views;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
@@ -9,29 +9,22 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 
-import com.example.android.popularmoviesapp.adapters.ImageGridAdapter;
-import com.example.android.popularmoviesapp.interfaces.GetDataService;
-import com.example.android.popularmoviesapp.models.RetroTMDBDiscover;
+import com.example.android.popularmoviesapp.R;
+import com.example.android.popularmoviesapp.views.adapters.ImageGridAdapter;
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
-import com.example.android.popularmoviesapp.network.RetrofitClientInstance;
+import com.example.android.popularmoviesapp.views.listeners.EndlessRecyclerViewScrollListener;
+import com.example.android.popularmoviesapp.views.view_models.PostersViewModelFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
 
 //API KEY for TMDB c53136ae7a28a62865708255ff41f52a
 // URL exemplo http://api.themoviedb.org/3/discover/movie?api_key=c53136ae7a28a62865708255ff41f52a&sort_by=popularity.desc
@@ -88,30 +81,34 @@ public class MainActivity extends AppCompatActivity {
         if (viewModel == null) {
             viewModel = ViewModelProviders.of(this, new PostersViewModelFactory(this.getApplication(), mSelectedOrder, mPage)).get(PostersViewModel.class);
 
-            viewModelLoadDataIntoAdapter(viewModel);
+            viewModelUpdateDataIntoAdapter(viewModel);
 
         } else {
             mPage = viewModel.getPage();
             viewModel.loadData(mSelectedOrder, mPage);
 
-            viewModelLoadDataIntoAdapter(viewModel);
+            viewModelUpdateDataIntoAdapter(viewModel);
         }
 
         recyclerView.scrollToPosition(viewModel.getVerticalscroll());
+
     }
 
-    void viewModelLoadDataIntoAdapter(PostersViewModel viewModel){
+    void viewModelUpdateDataIntoAdapter(PostersViewModel viewModel){
         viewModel.getPostersResponseObservable()
                 .observe(this, new Observer<ArrayList<RetroTMDBDiscoverResults>>() {
                     @Override
                     public void onChanged(@Nullable ArrayList<RetroTMDBDiscoverResults> retroTMDBDiscoverResults) {
                         if (retroTMDBDiscoverResults != null) {
                             mResults = new ArrayList<>(retroTMDBDiscoverResults);
-                            mImageGridAdapter = new ImageGridAdapter(mContext, mResults);
-                            mLoadingIndicator.setVisibility(View.INVISIBLE);
-                            recyclerView.setAdapter(mImageGridAdapter);
-                            mImageGridAdapter.notifyDataSetChanged();
+                            if (mImageGridAdapter == null){
+                                mImageGridAdapter = new ImageGridAdapter(mContext, mResults);
+                                recyclerView.setAdapter(mImageGridAdapter);
+                            } else {
+                                mImageGridAdapter.setResults(mResults);
+                            }
 
+                            mLoadingIndicator.setVisibility(View.INVISIBLE);
                         }
                     }
                 });
@@ -145,11 +142,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // 1- Limpar dataset
-                mImageGridAdapter = null;
+                mImageGridAdapter = null;// .clearResults();
                 OrdensSpinner selecionado = (OrdensSpinner) parentView.getSelectedItem();
                 mSelectedOrder = selecionado.getParameter();
-                viewModel = null;
+                viewModel.clearResults();
+                mPage = 1;
                 loadViewModel();
+                recyclerView.setAdapter(mImageGridAdapter);
                 //recyclerView.scrollTo(0, viewModel.getVerticalscroll());
 
             }
@@ -187,6 +186,8 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.addOnScrollListener(scrollListener);
 
         loadViewModel();
+
+        recyclerView.setAdapter(mImageGridAdapter);
         //loadDiscoverJSON();
 
 

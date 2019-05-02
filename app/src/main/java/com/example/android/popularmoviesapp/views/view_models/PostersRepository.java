@@ -1,12 +1,12 @@
-package com.example.android.popularmoviesapp;
+package com.example.android.popularmoviesapp.views.view_models;
 
 import android.arch.lifecycle.MutableLiveData;
 import android.util.Log;
 
-import com.example.android.popularmoviesapp.interfaces.GetDataService;
+import com.example.android.popularmoviesapp.views.interfaces.GetDataService;
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscover;
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
-import com.example.android.popularmoviesapp.network.RetrofitClientInstance;
+import com.example.android.popularmoviesapp.models.network.RetrofitClientInstance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,29 +38,6 @@ public class PostersRepository {
         Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(order, page);
         getDataService = retrofit.create(GetDataService.class);
     }
-
-/*    public MutableLiveData<ArrayList<RetroTMDBDiscover>> getPosters() {
-        final MutableLiveData<RetroTMDBDiscover> data = new MutableLiveData<>();
-
-        Call<RetroTMDBDiscover> call = getDataService.getMoviesDiscover();
-        call.enqueue(new Callback<RetroTMDBDiscover>() {
-            @Override
-            public void onResponse(Call<RetroTMDBDiscover> call, Response<RetroTMDBDiscover> response) {
-                if (response.isSuccessful()) {
-                    RetroTMDBDiscover jsonResponse = response.body();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<RetroTMDBDiscover> call, Throwable t) {
-                Log.d("Error",t.getMessage());
-                data.setValue(null);
-            }
-        });
-
-        return data;
-    }*/
-
 
 
     public MutableLiveData<ArrayList<RetroTMDBDiscoverResults>> getPostersPage(String mOrder, int mPage) {
