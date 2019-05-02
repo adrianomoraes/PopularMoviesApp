@@ -130,8 +130,8 @@
         <ToggleButton
             android:id="@+id/toggleFavoritos"
             style="@style/toggleButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_gravity="right"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"

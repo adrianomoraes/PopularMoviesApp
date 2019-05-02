@@ -1,7 +1,9 @@
 package com.example.android.popularmoviesapp.views;
 
+import android.app.Activity;
 import android.arch.persistence.room.Room;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -22,6 +24,8 @@ import com.example.android.popularmoviesapp.models.dao.FavoritesDatabase;
 import com.example.android.popularmoviesapp.models.network.RetrofitClientInstance;
 import com.example.android.popularmoviesapp.views.interfaces.GetDataService;
 import com.squareup.picasso.Picasso;
+
+import java.lang.ref.WeakReference;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -45,7 +49,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     Context mContext;
 
     private static final String DATABASE_NAME = "favorites_db";
-    private FavoritesDatabase movieDatabase;
+    private static FavoritesDatabase movieDatabase;
     //private ViewDataBinding mDetailBinding;
 
     @Override
@@ -101,7 +105,7 @@ public class MovieDetailActivity extends AppCompatActivity {
                 movie.setMovieName((String) tv_title.getText());
 
                 if (state) {
-                     if(!movieDatabase.daoAccess().fetchOneMoviesbyMovieId(mMovieId).equals(null)) {
+                     if(movieDatabase.daoAccess().fetchOneMoviesbyMovieId(mMovieId) != null) {
                         movieDatabase.daoAccess().insertOnlySingleMovie(movie);
                     }
                 }else {
@@ -121,6 +125,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         Call<RetroTMDBMovieResult> call = request.getMoviesDetails();
         call.enqueue(new Callback<RetroTMDBMovieResult>() {
+
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onResponse(Call<RetroTMDBMovieResult> call, Response<RetroTMDBMovieResult> response) {
@@ -147,8 +152,6 @@ public class MovieDetailActivity extends AppCompatActivity {
                         //.centerCrop()
                         .into(iv_backdrop);
 
-                toggleFavoritos.setChecked(isFavorite(mResult.getIdMovie()));
-
                 String reviewContent = "";
 
                 if (mResult.getReviews()!= null){
@@ -165,10 +168,8 @@ public class MovieDetailActivity extends AppCompatActivity {
 
                 tv_reviews.setText(reviewContent);
 
-            }
+                new FavoritesAsyncTask((Activity) mContext, mResult.getOriginalTitle(), mResult.getIdMovie()).execute();
 
-            public boolean isFavorite(long movieId){
-                return !movieDatabase.daoAccess().fetchOneMoviesbyMovieId(mMovieId).equals(null);
             }
 
             @Override
@@ -177,6 +178,40 @@ public class MovieDetailActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private static class FavoritesAsyncTask extends AsyncTask<Void, Void, Integer> {
+
+
+        private WeakReference<Activity> weakActivity;
+        private String movieName;
+        private long movieId;
+
+        public FavoritesAsyncTask(Activity activity, String movieName, long movieId) {
+            weakActivity = new WeakReference<>(activity);
+            this.movieName = movieName;
+            this.movieId = movieId;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            Favorites favorites = movieDatabase.daoAccess().fetchOneMoviesbyMovieId(movieId);
+
+            return (favorites != null)?0:1;
+
+        }
+
+        @Override
+        protected void onPostExecute(Integer isFavorite) {
+            Activity activity = weakActivity.get();
+            if(activity == null) {
+                return;
+            }
+
+                ToggleButton toggleFavoritos = activity.findViewById(R.id.toggleFavoritos);
+                toggleFavoritos.setChecked(isFavorite==0);
+
+        }
     }
 
 }
