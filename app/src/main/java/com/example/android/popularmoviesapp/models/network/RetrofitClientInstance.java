@@ -50,5 +50,39 @@ public class RetrofitClientInstance {
         return retrofit;
     }
 
+    public static Retrofit getRetrofitInstance(final long movieId) {
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(
+                        new Interceptor() {
+                            @Override
+                            public Response intercept(Interceptor.Chain chain) throws IOException {
+                                Request request = chain.request();
+
+                                // Request customization: add request headers
+                                HttpUrl.Builder requestBuilder = request.url().newBuilder()
+                                        .addPathSegment(String.valueOf(movieId))
+                                        .addQueryParameter("api_key",API_KEY)
+                                        .addQueryParameter("append_to_response","videos")
+                                                ;
+
+
+                                request = request.newBuilder().url(String.valueOf(requestBuilder)).build();
+                                return chain.proceed(request);
+                            }
+                        })
+                .dns(Dns.SYSTEM)
+                .build();
+
+        //if (retrofit == null) {
+        retrofit = new retrofit2.Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
+                .build();
+        //}
+        return retrofit;
+    }
+
 
 }
