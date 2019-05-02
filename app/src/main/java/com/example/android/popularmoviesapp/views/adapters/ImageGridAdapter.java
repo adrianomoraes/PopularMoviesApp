@@ -1,6 +1,8 @@
 package com.example.android.popularmoviesapp.views.adapters;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
@@ -9,9 +11,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.android.popularmoviesapp.R;
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
+import com.example.android.popularmoviesapp.views.MainActivity;
+import com.example.android.popularmoviesapp.views.MovieDetailActivity;
+import com.example.android.popularmoviesapp.views.listeners.CustomItemClickListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -19,8 +25,10 @@ import java.util.ArrayList;
 public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.GridItemViewHolder> {
 
     private Context mContext;
+    CustomItemClickListener listener;
 
     private ArrayList<RetroTMDBDiscoverResults> mResults;
+
 
     public class GridItemViewHolder extends RecyclerView.ViewHolder {
         //PosterImageView posterImageView;
@@ -29,12 +37,15 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
         public GridItemViewHolder(View view) {
             super(view);
             posterImageView = view.findViewById(R.id.im_poster);
+
         }
+
     }
 
-    public ImageGridAdapter(Context context, ArrayList<RetroTMDBDiscoverResults> results) {
+    public ImageGridAdapter(Context context, ArrayList<RetroTMDBDiscoverResults> results, CustomItemClickListener listener) {
         this.mContext = context;
         this.mResults = results;
+        this.listener = listener;
 
     }
 
@@ -53,8 +64,16 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
     @Override
     public GridItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.poster_view, parent, false);
+        final GridItemViewHolder mViewHolder = new GridItemViewHolder(itemView);
 
-        return new GridItemViewHolder(itemView);
+        itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onItemClick(v, mViewHolder.getPosition());
+            }
+        });
+
+        return mViewHolder;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -70,12 +89,6 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
                 //.centerCrop()
                 .into(holder.posterImageView);
 
-        holder.posterImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //handle click event on image
-            }
-        });
     }
 
     @Override

@@ -3,12 +3,14 @@ package com.example.android.popularmoviesapp.views;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -18,6 +20,7 @@ import android.widget.Spinner;
 import com.example.android.popularmoviesapp.R;
 import com.example.android.popularmoviesapp.views.adapters.ImageGridAdapter;
 import com.example.android.popularmoviesapp.models.RetroTMDBDiscoverResults;
+import com.example.android.popularmoviesapp.views.listeners.CustomItemClickListener;
 import com.example.android.popularmoviesapp.views.listeners.EndlessRecyclerViewScrollListener;
 import com.example.android.popularmoviesapp.views.view_models.PostersViewModelFactory;
 
@@ -102,7 +105,15 @@ public class MainActivity extends AppCompatActivity {
                         if (retroTMDBDiscoverResults != null) {
                             mResults = new ArrayList<>(retroTMDBDiscoverResults);
                             if (mImageGridAdapter == null){
-                                mImageGridAdapter = new ImageGridAdapter(mContext, mResults);
+                                mImageGridAdapter = new ImageGridAdapter(mContext, mResults, new CustomItemClickListener() {
+                                    @Override
+                                    public void onItemClick(View v, int position) {
+                                        //Log.d(TAG, "clicked position:" + position);
+                                        long movieId = mResults.get(position).getIdMovie();
+
+                                        openMovieDetails(movieId);
+                                    }
+                                });
                                 recyclerView.setAdapter(mImageGridAdapter);
                             } else {
                                 mImageGridAdapter.setResults(mResults);
@@ -181,6 +192,8 @@ public class MainActivity extends AppCompatActivity {
 
                 viewModel.addScroll(dy);
             }
+
+
         };
         // Adds the scroll listener to RecyclerView
         recyclerView.addOnScrollListener(scrollListener);
@@ -194,37 +207,16 @@ public class MainActivity extends AppCompatActivity {
         //loadDiscoverJSON(2);
     }
 
+    private void openMovieDetails(long movieId) {
+        Intent movieDetailIntent = new Intent(this, MovieDetailActivity.class);
 
-   /* private void loadDiscoverJSON() {
+        Bundle bundle = new Bundle();
+        bundle.putLong("movieId", movieId);
+        movieDetailIntent.putExtras(bundle);
 
-        Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance(mSelectedOrder, mPage);
+        startActivity(movieDetailIntent);
+    }
 
-        GetDataService request = retrofit.create(GetDataService.class);
-
-        Call<RetroTMDBDiscover> call = request.getMoviesDiscover();
-        call.enqueue(new Callback<RetroTMDBDiscover>() {
-            @Override
-            public void onResponse(Call<RetroTMDBDiscover> call, Response<RetroTMDBDiscover> response) {
-
-                RetroTMDBDiscover jsonResponse = response.body();
-
-                mResults = new ArrayList<>(Arrays.asList(jsonResponse.getResults()));
-                if (mImageGridAdapter == null) {
-                    mImageGridAdapter = new ImageGridAdapter(mContext, imageList, mResults);
-                    mLoadingIndicator.setVisibility(View.INVISIBLE);
-                    recyclerView.setAdapter(mImageGridAdapter);
-                } else{
-                    mImageGridAdapter.addResults(mResults);
-                    //mImageGridAdapter.notifyDataSetChanged();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<RetroTMDBDiscover> call, Throwable t) {
-                Log.d("Error",t.getMessage());
-            }
-        });
-    }*/
 
     private static class OrdensSpinner {
         public String name;

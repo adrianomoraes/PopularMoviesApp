@@ -1,8 +1,13 @@
 package com.example.android.popularmoviesapp.views.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
+import android.view.View;
+import android.widget.Toast;
+
+import com.example.android.popularmoviesapp.views.MovieDetailActivity;
 
 
 public class PosterImageView extends AppCompatImageView {
