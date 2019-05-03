@@ -105,11 +105,9 @@ public class MovieDetailActivity extends AppCompatActivity {
                 movie.setMovieName((String) tv_title.getText());
 
                 if (state) {
-                     if(movieDatabase.daoAccess().fetchOneMoviesbyMovieId(mMovieId) != null) {
-                        movieDatabase.daoAccess().insertOnlySingleMovie(movie);
-                    }
+                    movieDatabase.daoAccess().insertOnlySingleMovie(movie);
                 }else {
-                     movieDatabase.daoAccess().deleteMovie(movie);
+                    movieDatabase.daoAccess().deleteMovie(movie);
                 }
 
             }
