@@ -1,9 +1,12 @@
 package com.example.android.popularmoviesapp.views;
 
+import android.app.Activity;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,15 +18,20 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.ToggleButton;
 
 import com.example.android.popularmoviesapp.R;
+import com.example.android.popularmoviesapp.models.dao.Favorites;
+import com.example.android.popularmoviesapp.models.dao.FavoritesDatabase;
 import com.example.android.popularmoviesapp.views.adapters.ImageGridAdapter;
 import com.example.android.popularmoviesapp.models.api.RetroTMDBDiscoverResults;
 import com.example.android.popularmoviesapp.views.listeners.CustomItemClickListener;
 import com.example.android.popularmoviesapp.views.listeners.EndlessRecyclerViewScrollListener;
 import com.example.android.popularmoviesapp.views.view_models.PostersViewModelFactory;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ArrayList<RetroTMDBDiscoverResults> mResults;
+
     private ImageGridAdapter mImageGridAdapter;
     private ProgressBar mLoadingIndicator;
     private Spinner mOrderSpinner;
@@ -43,12 +52,19 @@ public class MainActivity extends AppCompatActivity {
     private EndlessRecyclerViewScrollListener scrollListener;
     private PostersViewModel viewModel;
 
+    OrdensSpinner selecionado;
+
     private String mSelectedOrder;
     private int mPage = 1;
+
+    private boolean ismFavorite = false;
 
     String[] ordens;
     HashMap<String, String> mOrders;
     int columnCount;
+
+    private static final String DATABASE_NAME = "favorites_db";
+    private static FavoritesDatabase movieDatabase;
 
 
 
@@ -64,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
             put("popularity.desc", ordens[0]);
             put("vote_average.desc", ordens[1]);
             put("release_date.desc", ordens[2]);
+            put("favorites", ordens[3]);
         }};
 
         columnCount = getResources().getInteger(R.integer.column_count);
@@ -72,11 +89,34 @@ public class MainActivity extends AppCompatActivity {
 
         initViews();
 
-        if (savedInstanceState == null){
-            loadViewModel();
-        }
+       //if(savedInstanceState == null){
+           loadViewModel();
+       //}
 
 
+        movieDatabase = Room.databaseBuilder(getApplicationContext(),
+                FavoritesDatabase.class, DATABASE_NAME)
+                .fallbackToDestructiveMigration()
+                .build();
+
+
+    }
+
+    public void setList(ArrayList<RetroTMDBDiscoverResults> results) {
+        this.mResults = results;
+    }
+
+    public void setmImageGridAdapter(ImageGridAdapter mImageGridAdapter) {
+        this.mImageGridAdapter = mImageGridAdapter;
+    }
+
+    public void updateRecyclerViewAdaper(){
+        ismFavorite = true;
+        recyclerView.setAdapter(mImageGridAdapter);
+    }
+
+    public void setIsmFavorite(boolean ismFavorite) {
+        this.ismFavorite = ismFavorite;
     }
 
     private void loadViewModel() {
@@ -84,13 +124,18 @@ public class MainActivity extends AppCompatActivity {
             viewModel = ViewModelProviders.of(this, new PostersViewModelFactory(this.getApplication(), mSelectedOrder, mPage)).get(PostersViewModel.class);
 
             viewModelUpdateDataIntoAdapter(viewModel);
+            //mPage = viewModel.getPage();
+            //mSelectedOrder = viewModel.getOrder();
 
         } else {
-            mPage = viewModel.getPage();
+
             viewModel.loadData(mSelectedOrder, mPage);
 
             viewModelUpdateDataIntoAdapter(viewModel);
         }
+
+            //mPage = viewModel.getPage();
+            //mSelectedOrder = viewModel.getOrder();
 
         recyclerView.scrollToPosition(viewModel.getVerticalscroll());
 
@@ -124,6 +169,8 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+
+
     private void initViews() {
         recyclerView = findViewById(R.id.rv_item_grid);
         recyclerView.setHasFixedSize(true);
@@ -144,22 +191,31 @@ public class MainActivity extends AppCompatActivity {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mOrderSpinner.setAdapter(spinnerAdapter);
 
-        mOrderSpinner.setSelection(1, false);
-        OrdensSpinner selecionado = (OrdensSpinner) mOrderSpinner.getSelectedItem();
+        mOrderSpinner.setSelection(2, false);
+        selecionado = (OrdensSpinner) mOrderSpinner.getSelectedItem();
         mSelectedOrder = selecionado.getParameter();
 
         mOrderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                // 1- Limpar dataset
-                mImageGridAdapter = null;// .clearResults();
+
                 OrdensSpinner selecionado = (OrdensSpinner) parentView.getSelectedItem();
-                mSelectedOrder = selecionado.getParameter();
-                viewModel.clearResults();
-                mPage = 1;
-                loadViewModel();
-                recyclerView.setAdapter(mImageGridAdapter);
-                //recyclerView.scrollTo(0, viewModel.getVerticalscroll());
+                if (selecionado.getParameter().equals("favorites")){
+                    mImageGridAdapter = null;
+
+                    new MainActivity.FavoritesAsyncTask((MainActivity) mContext).execute();
+
+                } else {
+                    setIsmFavorite(false);
+                    mImageGridAdapter = null;// .clearResults();
+
+                    mSelectedOrder = selecionado.getParameter();
+                    viewModel.clearResults();
+                    mPage = 1;
+                    loadViewModel();
+                    recyclerView.setAdapter(mImageGridAdapter);
+                    //recyclerView.scrollTo(0, viewModel.getVerticalscroll());
+                }
 
             }
 
@@ -173,16 +229,19 @@ public class MainActivity extends AppCompatActivity {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, columnCount, StaggeredGridLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(gridLayoutManager);
 
+        recyclerView.setAdapter(mImageGridAdapter);
+
         scrollListener = new EndlessRecyclerViewScrollListener(gridLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 // Triggered only when new data needs to be appended to the list
                 // Add whatever code is needed to append new items to the bottom of the list
-                mPage++;
-                viewModel.nextPage();
 
-                loadViewModel();
-                //view.scrollTo(0, viewModel.getVerticalscroll());
+                if (!ismFavorite) {
+                    mPage++;
+                    viewModel.nextPage();
+                    loadViewModel();
+                }
             }
 
             @Override
@@ -199,11 +258,8 @@ public class MainActivity extends AppCompatActivity {
 
         loadViewModel();
 
-        recyclerView.setAdapter(mImageGridAdapter);
-        //loadDiscoverJSON();
 
 
-        //loadDiscoverJSON(2);
     }
 
     private void openMovieDetails(long movieId) {
@@ -233,6 +289,56 @@ public class MainActivity extends AppCompatActivity {
 
         public String getParameter( ){
             return parameter;
+        }
+    }
+
+    private static class FavoritesAsyncTask extends AsyncTask<Void, Void, ArrayList<RetroTMDBDiscoverResults>> {
+
+
+        private MainActivity activity;;
+
+        public FavoritesAsyncTask(MainActivity activity) {
+            this.activity = activity;
+
+        }
+
+        @Override
+        protected ArrayList<RetroTMDBDiscoverResults> doInBackground(Void... params) {
+            ArrayList<RetroTMDBDiscoverResults> mResults = new ArrayList<>();
+
+            List<Favorites> favoritesList = movieDatabase.daoAccess().fetchAllMovies();
+            RetroTMDBDiscoverResults result;
+
+            for (Favorites favorite : favoritesList){
+
+                result = new RetroTMDBDiscoverResults();
+                result.setIdMovie(favorite.getMovieId());
+                result.setPosterPath(favorite.getMoviePosterPath());
+
+                mResults.add(result);
+            }
+
+            return mResults;
+
+        }
+
+        @Override
+        protected void onPostExecute(final ArrayList<RetroTMDBDiscoverResults> results) {
+            activity.setList(results);
+
+            activity.setmImageGridAdapter(new ImageGridAdapter(activity, results, new CustomItemClickListener() {
+                @Override
+                public void onItemClick(View v, int position) {
+                    //Log.d(TAG, "clicked position:" + position);
+                    long movieId = results.get(position).getIdMovie();
+
+                    activity.openMovieDetails(movieId);
+                }
+            }));
+
+            activity.setIsmFavorite(true);
+            activity.updateRecyclerViewAdaper();
+
         }
     }
 }

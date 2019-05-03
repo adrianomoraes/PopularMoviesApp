@@ -60,6 +60,10 @@ public class RetroTMDBMovieResult {
         return "http://image.tmdb.org/t/p/w185" + posterPath;
     }
 
+    public String getJsonPosterPath() {
+        return posterPath;
+    }
+
     public String getReleaseDate() {
 
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-DD");

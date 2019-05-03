@@ -44,6 +44,12 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Grid
 
     }
 
+    public ImageGridAdapter(Context context, ArrayList<RetroTMDBDiscoverResults> results) {
+        this.mContext = context;
+        this.mResults = results;
+        notifyDataSetChanged();
+    }
+
     public void setResults (ArrayList<RetroTMDBDiscoverResults> results){
         this.mResults = results;
         notifyDataSetChanged();

@@ -2,13 +2,18 @@ package com.example.android.popularmoviesapp.views;
 
 import android.app.Activity;
 import android.arch.persistence.room.Room;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -19,13 +24,18 @@ import com.example.android.popularmoviesapp.R;
 import com.example.android.popularmoviesapp.models.api.RetroTMDBMovieResult;
 import com.example.android.popularmoviesapp.models.api.RetroTMDBReviewResults;
 import com.example.android.popularmoviesapp.models.api.RetroTMDBReviews;
+import com.example.android.popularmoviesapp.models.api.RetroTMDBVideoResults;
 import com.example.android.popularmoviesapp.models.dao.Favorites;
 import com.example.android.popularmoviesapp.models.dao.FavoritesDatabase;
 import com.example.android.popularmoviesapp.models.network.RetrofitClientInstance;
+import com.example.android.popularmoviesapp.views.adapters.TrailerAdapter;
 import com.example.android.popularmoviesapp.views.interfaces.GetDataService;
+import com.example.android.popularmoviesapp.views.listeners.CustomItemClickListener;
+import com.example.android.popularmoviesapp.views.view_models.TrailerModel;
 import com.squareup.picasso.Picasso;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -33,6 +43,12 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class MovieDetailActivity extends AppCompatActivity {
+
+    private RecyclerView recyclerView;
+    private ArrayList<TrailerModel> imageModelArrayList;
+    private RetroTMDBVideoResults[] videoResults;
+    private TrailerAdapter trailerAdapter;
+
 
     private RetroTMDBMovieResult mResult;
 
@@ -45,6 +61,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     ToggleButton toggleFavoritos;
 
     long mMovieId;
+    String mPosterPath;
 
     Context mContext;
 
@@ -52,6 +69,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     private static FavoritesDatabase movieDatabase;
     //private ViewDataBinding mDetailBinding;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,13 +105,60 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         viewModelUpdateDataIntoAdapter(mMovieId);
 
-
-
         /*LISTAR TRAILERS*/
 
             /*LANÇAR INTENT DE ABERTURA DE CADA TREILER*/
 
         /*CRIAR BASE PARA FAVORITOS*/
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    protected void populateTrailers() {
+
+        recyclerView = (RecyclerView) findViewById(R.id.rv_trailers);
+
+        imageModelArrayList = getTrailerModels();
+        trailerAdapter = new TrailerAdapter(this, imageModelArrayList, new CustomItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position) {
+                //Log.d(TAG, "clicked position:" + position);
+                String trailerKey = videoResults[position].getKey();
+
+                openYoutubeTrailer(trailerKey);
+            }
+        });
+
+        recyclerView.setAdapter(trailerAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
+
+
+    }
+
+    private void openYoutubeTrailer(String key){
+
+        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
+        Intent webIntent = new Intent(Intent.ACTION_VIEW,
+                Uri.parse("http://www.youtube.com/watch?v=" + key));
+        try {
+            mContext.startActivity(appIntent);
+        } catch (ActivityNotFoundException ex) {
+            mContext.startActivity(webIntent);
+        }
+
+    }
+
+    private ArrayList<TrailerModel> getTrailerModels(){
+
+        ArrayList<TrailerModel> list = new ArrayList<>();
+
+        for(int i = 0; i < 7; i++){
+            TrailerModel fruitModel = new TrailerModel();
+            fruitModel.setName(videoResults[i].getName());
+            fruitModel.setImage_drawable("http://i3.ytimg.com/vi/" + videoResults[i].getKey() + "/hqdefault.jpg");
+            list.add(fruitModel);
+        }
+
+        return list;
     }
 
     private void favoriteOnOff(final boolean state){
@@ -103,6 +168,7 @@ public class MovieDetailActivity extends AppCompatActivity {
                 Favorites movie = new Favorites();
                 movie.setMovieId(mMovieId);
                 movie.setMovieName((String) tv_title.getText());
+                movie.setMoviePosterPath(mPosterPath);
 
                 if (state) {
                     movieDatabase.daoAccess().insertOnlySingleMovie(movie);
@@ -136,12 +202,16 @@ public class MovieDetailActivity extends AppCompatActivity {
                 tv_releaseDate.setText(mResult.getReleaseDate());
                 tv_plot.setText(mResult.getOverview());
 
+                mPosterPath = mResult.getPosterPath();
+
                 Picasso.get()
-                        .load(mResult.getPosterPath())
+                        .load(mPosterPath)
                         .placeholder(mContext.getDrawable(R.drawable.film_poster_placeholder))
                         //.resize(185, 277)
                         //.centerCrop()
                         .into(iv_poster);
+
+                mPosterPath = mResult.getJsonPosterPath();
 
                 Picasso.get()
                         .load(mResult.getBackdropPath())
@@ -151,6 +221,10 @@ public class MovieDetailActivity extends AppCompatActivity {
                         .into(iv_backdrop);
 
                 String reviewContent = "";
+
+                videoResults = mResult.getVideos().getResults();
+
+                populateTrailers();
 
                 if (mResult.getReviews()!= null){
                     RetroTMDBReviews reviews =  mResult.getReviews();
@@ -166,7 +240,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 
                 tv_reviews.setText(reviewContent);
 
-                new FavoritesAsyncTask((Activity) mContext, mResult.getOriginalTitle(), mResult.getIdMovie()).execute();
+                new FavoritesAsyncTask((Activity) mContext, mResult.getOriginalTitle(), mResult.getIdMovie(), mResult.getPosterPath()).execute();
 
             }
 
@@ -178,17 +252,20 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     }
 
-    private static class FavoritesAsyncTask extends AsyncTask<Void, Void, Integer> {
+    public static class FavoritesAsyncTask extends AsyncTask<Void, Void, Integer> {
 
 
         private WeakReference<Activity> weakActivity;
         private String movieName;
         private long movieId;
+        private String moviePosterPath;
 
-        public FavoritesAsyncTask(Activity activity, String movieName, long movieId) {
+        public FavoritesAsyncTask(Activity activity, String movieName, long movieId, String moviePosterPath) {
             weakActivity = new WeakReference<>(activity);
             this.movieName = movieName;
             this.movieId = movieId;
+            this.moviePosterPath = moviePosterPath;
+
         }
 
         @Override
@@ -205,7 +282,6 @@ public class MovieDetailActivity extends AppCompatActivity {
             if(activity == null) {
                 return;
             }
-
                 ToggleButton toggleFavoritos = activity.findViewById(R.id.toggleFavoritos);
                 toggleFavoritos.setChecked(isFavorite==0);
 

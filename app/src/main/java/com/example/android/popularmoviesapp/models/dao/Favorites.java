@@ -13,11 +13,32 @@ public class Favorites {
 
     private String movieName;
 
+   private String moviePosterPath;
+
     public Favorites() {
     }
 
-    public long getMovieId() { return movieId; }
-    public void setMovieId(long movieId) { this.movieId = movieId; }
-    public String getMovieName() { return movieName; }
-    public void setMovieName (String movieName) { this.movieName = movieName; }
+    public long getMovieId() {
+        return movieId;
+    }
+
+    public void setMovieId(long movieId) {
+        this.movieId = movieId;
+    }
+
+    public String getMovieName() {
+        return movieName;
+    }
+
+    public void setMovieName (String movieName) {
+        this.movieName = movieName;
+    }
+
+    public String getMoviePosterPath() {
+        return moviePosterPath;
+    }
+
+    public void setMoviePosterPath(String moviePosterPath) {
+        this.moviePosterPath = moviePosterPath;
+    }
 }

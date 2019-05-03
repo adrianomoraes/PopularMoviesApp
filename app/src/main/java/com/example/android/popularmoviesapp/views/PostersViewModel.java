@@ -62,6 +62,10 @@ public class PostersViewModel  extends AndroidViewModel {
         return mPage;
     }
 
+    public String getOrder() {
+        return mOrder;
+    }
+
     void addScroll (int dy){
         verticalscroll = verticalscroll + dy;
     }

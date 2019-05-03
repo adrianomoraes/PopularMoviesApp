@@ -21,6 +21,9 @@ public interface DaoAccess {
     @Query("SELECT * FROM Favorites WHERE movieId = :movieId")
     Favorites fetchOneMoviesbyMovieId (long movieId);
 
+    @Query("SELECT * FROM Favorites")
+    List<Favorites> fetchAllMovies ();
+
     @Update
     void updateMovie (Favorites favorites);
 

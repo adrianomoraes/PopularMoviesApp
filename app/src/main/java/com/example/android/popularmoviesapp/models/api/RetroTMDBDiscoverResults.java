@@ -6,6 +6,15 @@ import com.google.gson.annotations.SerializedName;
 public class RetroTMDBDiscoverResults {
     @SerializedName("vote_count")
     private Long voteCount;
+
+    public void setIdMovie(Long idMovie) {
+        this.idMovie = idMovie;
+    }
+
+    public void setPosterPath(String posterPath) {
+        this.posterPath = posterPath;
+    }
+
     @SerializedName("id")
     private Long idMovie;
     @SerializedName("vote_average")

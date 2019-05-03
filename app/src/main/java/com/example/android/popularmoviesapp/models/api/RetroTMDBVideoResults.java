@@ -2,7 +2,7 @@ package com.example.android.popularmoviesapp.models.api;
 
 import com.google.gson.annotations.SerializedName;
 
-class RetroTMDBVideoResults {
+public class RetroTMDBVideoResults {
 
     //youtube URLs https://www.youtube.com/watch?v=      k3kzqVliF48   (key)
 
