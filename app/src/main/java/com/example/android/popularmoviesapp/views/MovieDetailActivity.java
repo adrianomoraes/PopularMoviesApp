@@ -150,8 +150,9 @@ public class MovieDetailActivity extends AppCompatActivity {
     private ArrayList<TrailerModel> getTrailerModels(){
 
         ArrayList<TrailerModel> list = new ArrayList<>();
+        int videoResultsLength = videoResults.length;
 
-        for(int i = 0; i < 7; i++){
+        for(int i = 0; i < videoResultsLength; i++){
             TrailerModel fruitModel = new TrailerModel();
             fruitModel.setName(videoResults[i].getName());
             fruitModel.setImage_drawable("http://i3.ytimg.com/vi/" + videoResults[i].getKey() + "/hqdefault.jpg");
